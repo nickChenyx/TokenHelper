@@ -1,11 +1,13 @@
-package com.nickchen.tokenhelper.Cache;
+package com.nickchen.tokenhelper.cache;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 默认的缓存实现。
+ *
  * @author nickChen
- *         create on 2017-12-04 15:08.
+ * @date 2017/12/08
  */
 public class DefaultAccessTokenCache implements IAccessTokenCache {
 

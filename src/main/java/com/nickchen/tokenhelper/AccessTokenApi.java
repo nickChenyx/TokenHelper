@@ -1,6 +1,6 @@
 package com.nickchen.tokenhelper;
 
-import com.nickchen.tokenhelper.Cache.IAccessTokenCache;
+import com.nickchen.tokenhelper.cache.IAccessTokenCache;
 import com.xiaoleilu.hutool.http.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +10,10 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
- * 认证并获取 access_token API。
- * 维持 access_token 可用。
+ * 认证并获取 access_token。维持 access_token 可用。
  *
  * @author nickChen
- *         2017年12月5日
+ * @date 2017/12/08
  */
 public class AccessTokenApi {
     private static final Logger LOG = LoggerFactory.getLogger(AccessTokenApi.class);
@@ -36,11 +35,11 @@ public class AccessTokenApi {
     }
 
     /**
-     * 从缓存中获取 access token，如果未取到或者 access token 不可用则先更新再获取
+     * 从缓存中获取 access_token，如果未取到或者 access_token 不可用则先更新再获取
      *
      * @return AccessToken accessToken
      */
-    public static AccessToken getAccessToken() {
+    static AccessToken getAccessToken() {
         AccessToken result = getAvailableAccessToken(appId, appSecret);
         if (result != null) {
             return result;
@@ -48,12 +47,19 @@ public class AccessTokenApi {
         return refreshAccessTokenIfNecessary(appId, appSecret);
     }
 
+    /**
+     * 从缓存中获取 access_token。
+     *
+     * @param appId 客户端id
+     * @param appSecret 客户端secret
+     * @return {@link AccessToken}
+     */
     private static AccessToken getAvailableAccessToken(String appId, String appSecret) {
         IAccessTokenCache accessTokenCache = TokenConfigKit.getAccessTokenCache();
         String accessTokenJson = accessTokenCache.get(appId);
-        if (accessTokenCache != null && !"".equals(accessTokenJson)) {
+        if (accessTokenJson != null && !"".equals(accessTokenJson)) {
             AccessToken result = new AccessToken(accessTokenJson);
-            if (result != null && result.isAvailable()) {
+            if (result.isAvailable()) {
                 return result;
             }
         }
@@ -71,6 +77,9 @@ public class AccessTokenApi {
 
     /**
      * synchronized 配合再次获取 token 并检测可用性，防止多线程重复刷新 token 值
+     * @param appId 客户端id
+     * @param appSecret 客户端secret
+     * @return {@link AccessToken}
      */
     private static synchronized AccessToken refreshAccessTokenIfNecessary(String appId, String appSecret) {
         AccessToken result = getAvailableAccessToken(appId, appSecret);
@@ -81,7 +90,7 @@ public class AccessTokenApi {
     }
 
     /**
-     * 无条件强制更新 access token 值，不再对 cache 中的 token 进行判断
+     * 无条件强制更新 access_token 值，不再对 cache 中的 token 进行判断
      *
      * @return AccessToken
      */
@@ -94,7 +103,7 @@ public class AccessTokenApi {
      *
      * @return AccessToken
      */
-    public static AccessToken refreshAccessToken(String appId, String appSecret) {
+    private static AccessToken refreshAccessToken(String appId, String appSecret) {
         final String postUrl = buildPostUrl();
         // 最多三次请求
         AccessToken result = RetryUtils.retryOnException(3, new Callable<AccessToken>() {
@@ -105,14 +114,13 @@ public class AccessTokenApi {
             }
         });
 
-        // 三次请求如果仍然返回了不可用的 access token 仍然 put 进去，便于上层通过 AccessToken 中的属性判断底层的情况
         if (null != result) {
+            if (result.getAccessToken() == null) {
+                throw new RuntimeException(result.getError().concat("\n").concat(result.getErrorDescription()));
+            }
             // 利用 appId 与 accessToken 建立关联，支持多账户
             IAccessTokenCache accessTokenCache = TokenConfigKit.getAccessTokenCache();
             accessTokenCache.set(appId, result.getCacheJson());
-            if (result.getAccessToken() == null) {
-                throw new RuntimeException(result.getError().concat("\n").concat(result.getError_description()));
-            }
         } else {
             throw new RuntimeException("Cannot get token from remote, please check config or contact manager.");
         }
@@ -141,21 +149,4 @@ public class AccessTokenApi {
         sb.append(queryParas.get("grant_type"));
         return sb.toString();
     }
-
-    public static void main(String[] args) throws InterruptedException {
-        AccessToken old = null;
-        Long start = System.currentTimeMillis();
-        while (true) {
-            Thread.sleep(500);
-            AccessToken accessToken = AccessTokenApi.getAccessToken();
-            if (old == null || !old.getAccessToken().equals(accessToken.getAccessToken())) {
-                System.out.println(System.currentTimeMillis() - start);
-                start = System.currentTimeMillis();
-                old = accessToken;
-            }
-            System.out.print("token: " + accessToken.getAccessToken());
-            System.out.println("     expiredTime: " + accessToken.getExpiredTime());
-        }
-    }
-
 }

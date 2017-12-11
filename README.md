@@ -3,9 +3,6 @@
 > 本工具类旨在帮助解决 OAuth 客户端授权模式(*client_credentials*)下获取 `access_token`过期问题。
 > 本工具类可以保持 `access_token`始终可用。
 
----
-> 致谢 [jfinal-weixin](https://gitee.com/jfinal/jfinal-weixin) 团队，本文代码主体思路参考了 jfinal-weixin的实现。
-
 ## 使用方法
 
 **只需要一步 ->**  使用 `AccessTokenApi` 类的 `getAccessToken()` **静态方法**获取可用的 `access_token`。
@@ -17,7 +14,7 @@
 
 ### 基于 properties 的文件配置
 
-使用默认的 `token.properties` 文件，先扫描 classpath下的 `token.properties`文件。如果没有该文件，则扫描 tokenhelper 包路径下的 `token.properties`文件，即 `com/greencloud/tokenhelper/token.properties`。
+使用默认的 `token.properties` 文件，先扫描 classpath下的 `token.properties`文件。如果没有该文件，则扫描 tokenhelper 包路径下的 `token.properties`文件，即 `com/nickchen/tokenhelper/token.properties`。
 
 ### props文件配置客户端参数
 
@@ -60,4 +57,8 @@ maxIdle=8
 maxWait=10000
 # redis pool 连接超时时间（毫秒）
 timeout=10000
+# redis 中存储 token 的 key 前缀设置
+accessTokenPrefix=openapi:token:
+# 提前多少秒刷新 token
+intervalTimeToRefreshToken=15
 ```

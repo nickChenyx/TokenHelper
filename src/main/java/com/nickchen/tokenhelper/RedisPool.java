@@ -8,7 +8,7 @@ import redis.clients.jedis.JedisPoolConfig;
  * Redis 连接池
  *
  * @author nickChen
- *         2017-12-05
+ * @date 2017/12/08
  */
 public final class RedisPool {
     private static String ADDR = "127.0.0.1";
@@ -43,12 +43,13 @@ public final class RedisPool {
     }
     private static String getFromConf(String key) {
         String value = PropsUtil.get(key);
-        if (value == null || value.equals("")) {
+        if (value == null || "".equals(value)) {
             return null;
         }
         return value;
     }
-    /**
+
+    /*
      * 静态块，初始化Redis连接池
      */
     static {
@@ -74,14 +75,11 @@ public final class RedisPool {
 
     /**
      * 获取Jedis实例
-     *
-     * @return
      */
     public synchronized static Jedis getJedis() {
         try {
             if (jedisPool != null) {
-                Jedis jedis = jedisPool.getResource();
-                return jedis;
+                return jedisPool.getResource();
             } else {
                 return null;
             }

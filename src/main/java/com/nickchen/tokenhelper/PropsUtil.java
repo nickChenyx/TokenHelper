@@ -9,8 +9,9 @@ import java.util.Properties;
 
 /**
  * 用来读取配置文件的类
+ *
  * @author nickChen
- * 2017-12-05
+ * @date 2017/12/08
  */
 public class PropsUtil {
     private static final Logger LOG = LoggerFactory.getLogger(PropsUtil.class);

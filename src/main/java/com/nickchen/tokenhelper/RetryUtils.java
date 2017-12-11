@@ -5,8 +5,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 异常重试工具类
+ *
  * @author nickChen
- * 2017年12月5日
+ * @date 2017/12/08
  */
 public class RetryUtils {
     private static final Logger LOG = LoggerFactory.getLogger(RetryUtils.class);
@@ -26,9 +27,8 @@ public class RetryUtils {
      * @param <V> 泛型
      * @return V 结果
      */
-    public static <V extends ResultCheck> V retryOnException(int retryLimit,
-            java.util.concurrent.Callable<V> retryCallable) {
-
+    static <V extends ResultCheck> V retryOnException(int retryLimit,
+                                                      java.util.concurrent.Callable<V> retryCallable) {
         V v = null;
         for (int i = 0; i < retryLimit; i++) {
             try {
